@@ -1,0 +1,11 @@
+GDD
+
+
+1v1 game with a map,
+multiplayer against 1 player, has a spectate mode
+
+player has movement to anywhere on the map
+
+goal: kill opponent to win round
+
+GOAL: first to 10 win by 2
