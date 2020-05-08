@@ -11,10 +11,11 @@ app.use('/client', express.static(__dirname + '/client'));
 serv.listen(2000);
 console.log("Server Started");
 
-var SOCKET_LIST = {};
+var CONNECT_LIST = {};
 var PLAYER_LIST = {};
-var BALL = {};
+var BULLET_LIST = {};
 var gameStart = false;
+var clickNum = 0;
 var Player = function(id){
     if(id == 0){
         var self = {
@@ -24,6 +25,8 @@ var Player = function(id){
             number:1,
             pressingUp:false,
             pressingDown:false,
+            pressingLeft:false,
+            pressingRight:false,
             maxSpd:4,
         }
         self.updatePosition = function(){
@@ -31,6 +34,10 @@ var Player = function(id){
                 self.y -= self.maxSpd;
             if(self.pressingDown)
                 self.y += self.maxSpd;
+            if(self.pressingLeft)
+                self.x -= self.maxSpd;
+            if(self.pressingRight)
+                self.x += self.maxSpd;
         }
     }
     else if (id == 1){
@@ -41,6 +48,8 @@ var Player = function(id){
             number:2,
             pressingUp:false,
             pressingDown:false,
+            pressingLeft:false,
+            pressingRight:false,
             maxSpd:4,
         }
         self.updatePosition = function(){
@@ -48,35 +57,53 @@ var Player = function(id){
                 self.y -= self.maxSpd;
             if(self.pressingDown)
                 self.y += self.maxSpd;
+            if(self.pressingLeft)
+                self.x -= self.maxSpd;
+            if(self.pressingRight)
+                self.x += self.maxSpd;
+
+            //map boundry collision
+                if(self.x >= 850 || self.x <= 0){
+                    //move back by max spd
+                  }
+                  else if(self.y >= 450|| self.y <= 0){
+                    //move back by max spd
+                  }
         }
     }
 
     return self;
 }
 
-var Ball = function(){
+var Bullet = function(x, y, mouseX, mouseY, id){
     var self = {
-        x:450,
-        y:250,
-        spdX:3,
-        spdY:1,
-        id:'ball',
+        x:x,
+        y:y,
+        spdX:30,
+        spdY:30,
+        mouseX:mouseX,
+        mouseY:mouseY,
+        id:id,
+        
     }
-    
+   
+  //TODO:CHANGE BULLET UPDATE BASED ON MOUSE POINTER LOCATION  
     self.updatePosition = function(){
+
         self.x += self.spdX;
         self.y += self.spdY;
 
           if(self.x >= 850 || self.x <= 0){
-            self.spdX *= -1;
+            //delete entity
           }
           else if(self.y >= 450|| self.y <= 0){
-            self.spdY *= -1;
+            //delete entity
           }
+
          //TODO figure out how to get player position info into ball for collision detection
 
          }
-      
+      BULLET_LIST[self.id] = self;
 
     return self;
 }
@@ -86,7 +113,7 @@ var io = require('socket.io') (serv, {});
 io.sockets.on('connection', function(socket){
     //add a random number to a list of connected "sockets"
     socket.id = conNum;
-    SOCKET_LIST[socket.id] = socket;
+    CONNECT_LIST[socket.id] = socket;
     console.log('socket connection' + conNum);
     
 //add id to list of "players"
@@ -101,8 +128,6 @@ io.sockets.on('connection', function(socket){
     //when player 2 joins, start ball movement
     if(conNum >= 1){
         gameStart = true;
-        var ball = Ball();
-        BALL[0] = ball;
         socket.emit('gameBegin');
     }
     else {
@@ -113,7 +138,7 @@ io.sockets.on('connection', function(socket){
     socket.on('disconnect', function(){
         conNum--;
         console.log("socket disconnected");
-        delete SOCKET_LIST[socket.id];
+        delete CONNECT_LIST[socket.id];
         delete PLAYER_LIST[socket.id];
     });
 //user input registering
@@ -122,7 +147,19 @@ io.sockets.on('connection', function(socket){
             player.pressingUp = data.state;
         else if (data.inputId === 'down')
             player.pressingDown = data.state;
+        else if (data.inputId === 'left')
+            player.pressingLeft = data.state;
+        else if (data.inputId === 'right')
+            player.pressingRight = data.state;
+            
     });
+    //receive shoot command and create bullet entity
+    socket.on('click', function(data){
+        clickNum++;
+        
+        var bullet = Bullet(player.x, player.y, mouseX, mouseY, clickNum);
+        bullet.updatePosition();
+    })
 });
 
 
@@ -130,25 +167,32 @@ io.sockets.on('connection', function(socket){
 
 //loop for player positions
 setInterval (function() {
-    var pack = [];
+    var playerPack = [];
+    var bulletPack = [];
     if(gameStart){
     for(var i in PLAYER_LIST) {
-        var player = PLAYER_LIST[i];
-        var ball = BALL[0];
-        ball.updatePosition();        
+        var player = PLAYER_LIST[i];     
         player.updatePosition();
-        pack.push({
+        playerPack.push({
             x:player.x,
             y:player.y,
             number:player.number,
-            ballx:ball.x,
-            bally:ball.y,
+
+        })
+    }
+    for (var i in BULLET_LIST) {
+        var bullet = BULLET_LIST[i];
+        bullet.updatePosition();
+        bulletPack.push({
+            x:bullet.x,
+            y:bullet.y,
+            id:i
         })
     }
     //sends packets using socket id
-    for(var i in SOCKET_LIST) {
-        var socket = SOCKET_LIST[i];
-    socket.emit('newPositions',pack);
+    for(var i in CONNECT_LIST) {
+        var socket = CONNECT_LIST[i];
+    socket.emit('newPositions',playerPack, bulletPack);
     }
     }
 }, 250/25);
