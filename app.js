@@ -38,6 +38,22 @@ var Player = function(id){
                 self.x -= self.maxSpd;
             if(self.pressingRight)
                 self.x += self.maxSpd;
+            
+            if(self.x >= 850){
+                    //move back by max spd
+                    self.x -= self.maxSpd;
+                  }
+                  else if(self.x <= 0){
+                    self.x += self.maxSpd;
+                  }
+                  else if(self.y >= 450){
+                    //move back by max spd
+                    self.y -= self.maxSpd;
+                  }
+                  else if(self.y <= 0){
+                    self.y += self.maxSpd;
+                      
+                  }
         }
     }
     else if (id == 1){
@@ -63,11 +79,20 @@ var Player = function(id){
                 self.x += self.maxSpd;
 
             //map boundry collision
-                if(self.x >= 850 || self.x <= 0){
+                if(self.x >= 850){
                     //move back by max spd
+                    self.x -= self.maxSpd;
                   }
-                  else if(self.y >= 450|| self.y <= 0){
+                  else if(self.x <= 0){
+                    self.x += self.maxSpd;
+                  }
+                  else if(self.y >= 450){
                     //move back by max spd
+                    self.y -= self.maxSpd;
+                  }
+                  else if(self.y <= 0){
+                    self.y += self.maxSpd;
+                      
                   }
         }
     }
@@ -79,8 +104,8 @@ var Bullet = function(x, y, mouseX, mouseY, id){
     var self = {
         x:x,
         y:y,
-        spdX:30,
-        spdY:30,
+        spdX:10,
+        spdY:10,
         mouseX:mouseX,
         mouseY:mouseY,
         id:id,
@@ -94,10 +119,10 @@ var Bullet = function(x, y, mouseX, mouseY, id){
         self.y += self.spdY;
 
           if(self.x >= 850 || self.x <= 0){
-            //delete entity
+            delete BULLET_LIST[id];
           }
           else if(self.y >= 450|| self.y <= 0){
-            //delete entity
+            delete BULLET_LIST[id];
           }
 
          //TODO figure out how to get player position info into ball for collision detection
