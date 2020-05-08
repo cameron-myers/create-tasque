@@ -79,6 +79,8 @@
 
         //send click to sever 
         document.onclick = function(event){
-            socket.emit('click');
+            var x = event.clientX;
+            var y = event.clientY;
+            socket.emit('click',{x,y});
         }
 </script>

@@ -157,7 +157,8 @@ io.sockets.on('connection', function(socket){
     socket.on('click', function(data){
         clickNum++;
         
-        var bullet = Bullet(player.x, player.y, mouseX, mouseY, clickNum);
+        var bullet = Bullet(player.x, player.y, data.x, data.y, clickNum);
+        console.log(data.x + ' ' + data.y);
         bullet.updatePosition();
     })
 });
