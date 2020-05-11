@@ -13,6 +13,8 @@
     Img.bullet.src = '/client/img/Ball.png'
     Img.wall1 = new Image();
     Img.wall1.src = '/client/img/wall1.png'
+    Img.wall2 = new Image();
+    Img.wall2.src = '/client/img/wall2.png'
     var spectating = false;
     var pregame = false;
 
@@ -32,9 +34,13 @@
             }
 
             for(var i = 0; i < mapData.length; i++){
-                if(mapData[i].name = 'wall1'){
+                if(mapData[i].name == 'wall1'){
                 ctx.drawImage(Img.wall1, mapData[i].x, mapData[i].y);
+               }      
+                else if(mapData[i].name == 'wall2'){
+                ctx.drawImage(Img.wall2, mapData[i].x, mapData[i].y);
                }
+
             }
             // ctx.clearRect(50,0,50,500);
             // ctx.clearRect(800,0,50,500);

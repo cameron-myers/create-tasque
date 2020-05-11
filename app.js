@@ -15,13 +15,17 @@ var CONNECT_LIST = {};
 var PLAYER_LIST = {};
 var BULLET_LIST = {};
 var ENTITY_LIST = {};
+var SCORE = {};
 var gameStart = false;
 var clickNum = 0;
 var Player = function(id){
+    
     if(id == 0){
         var self = {
             x:50,
             y:150,
+            width:20,
+            height:50,
             id:id,
             number:1,
             pressingUp:false,
@@ -32,6 +36,7 @@ var Player = function(id){
             maxSpd:4,
         }
         self.updatePosition = function(){
+
             var collision = isTouching(self);
             if(collision) console.log("collison detected");
             if(self.pressingUp)
@@ -65,10 +70,11 @@ var Player = function(id){
         
             for(var i in BULLET_LIST){
             var bullet = BULLET_LIST[i];
-               if(self.x <= bullet.x && self.x >= bullet.x && self.y <= bullet.y && self.y >= bullet.y){
-                            
+               if(bullet.x > self.x && bullet.x < self.x + self.width && bullet.y > self.y && bullet.y < self.y + self.height){
+                SCORE[0]++;   
+                socket.emit('scoreUpdate', SCORE);   
          }
-              else {}
+         
                     }
         }
             
@@ -78,6 +84,8 @@ var Player = function(id){
         var self = {
             x:750,
             y:150,
+            width:20,
+            height:50,
             id:id,
             number:2,
             pressingUp:false,
@@ -120,8 +128,9 @@ var Player = function(id){
         
             for(var i in BULLET_LIST){
                 var bullet = BULLET_LIST[i];
-                if(self.x <= bullet.x && self.x + 50 >= bullet.x && self.y <= bullet.y && self.y + 200 >= bullet.y){
-                    
+                if(bullet.x > self.x && bullet.x < self.x + self.width && bullet.y > self.y && bullet.y < self.y + self.height){
+                    SCORE[1]++;
+                    socket.emit('scoreUpdate', SCORE);
                 }
                 else {}
             }
@@ -154,7 +163,8 @@ var Bullet = function(x, y, mouseX, mouseY, id, playerid){
         
         //mousex - playerx = b
         //mousey - playery = a
-
+        var collision = isTouching(self);
+        if(collision) delete BULLET_LIST[id];
           if(self.x >= 850 || self.x <= 0){
             delete BULLET_LIST[id];
           }
@@ -180,18 +190,23 @@ var Entity = function(id, x, y, w, h, name){
             height:h,
             name:name,
         }
-        ENTITY_LIST[self.id] = self;
+        
         return self;
     }
 //function that returns a boolean declaring wheter or not a player is colliding with an object
-function isTouching(player){
+function isTouching(object){
+    var colliding;
+    
     for(var i in ENTITY_LIST){
         var entity = ENTITY_LIST[i];
-        if(player.x >= entity.x && player.x <= entity.x + entity.width && player.y >= entity.y && player.y <= entity.y + entity.height){
+        if(object.x > entity.x && object.x < entity.x + entity.width && object.y > entity.y && object.y < entity.y + entity.height){
+            
             return true;
         }
-        else {return false;}
+        else {colliding = false;}
     }
+    
+    return colliding;
 }
 
 
@@ -214,9 +229,14 @@ io.sockets.on('connection', function(socket){
     }
     //when player 2 joins, start ball movement
     if(conNum >= 1){
-        ENTITY_LIST[0] = Entity(0, 300, 300, 20, 50, 'wall1');
-        ENTITY_LIST[1] = Entity(1, 400, 100, 20, 50, 'wall1');
+        ENTITY_LIST[0] = Entity(0, 200, 100, 80, 80, 'wall2');
+        ENTITY_LIST[1] = Entity(1, 200, 300, 80, 80, 'wall2');
+        ENTITY_LIST[2] = Entity(2, 600, 100, 80, 80, 'wall2');
+        ENTITY_LIST[3] = Entity(3, 600, 300, 80, 80, 'wall2');
+        ENTITY_LIST[4] = Entity(4, 550, 300, 20, 50, 'wall1');
         gameStart = true;
+        SCORE[0] = 0;
+        SCORE[1] = 0;
       socket.emit('gameBegin');
     }
     else {
@@ -250,6 +270,7 @@ io.sockets.on('connection', function(socket){
         console.log(data.x + ' ' + data.y);
         bullet.updatePosition();
     })
+    
 });
 
 
@@ -296,7 +317,7 @@ setInterval (function() {
     //sends packets using socket id
     for(var i in CONNECT_LIST) {
         var socket = CONNECT_LIST[i];
-    socket.emit('newPositions',playerPack, bulletPack,mapPack);
+    socket.emit('newPositions',playerPack, bulletPack, mapPack);
     
     }
     }
