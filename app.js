@@ -64,15 +64,17 @@ var Player = function(id){
                       
                   }
                 
-
+        self.isHit();
         }
         self.isHit = function(){
         
             for(var i in BULLET_LIST){
             var bullet = BULLET_LIST[i];
                if(bullet.x > self.x && bullet.x < self.x + self.width && bullet.y > self.y && bullet.y < self.y + self.height){
+                delete BULLET_LIST[i];
+                console.log('player 1 hit!');
                 SCORE[0]++;   
-                socket.emit('scoreUpdate', SCORE);   
+                  
          }
          
                     }
@@ -123,14 +125,17 @@ var Player = function(id){
                     self.y += self.maxSpd;
                       
                   }
+            self.isHit();
         }
         self.isHit = function(){
         
             for(var i in BULLET_LIST){
                 var bullet = BULLET_LIST[i];
                 if(bullet.x > self.x && bullet.x < self.x + self.width && bullet.y > self.y && bullet.y < self.y + self.height){
+                    delete BULLET_LIST[i];
+                    console.log('player 2 hit!');
                     SCORE[1]++;
-                    socket.emit('scoreUpdate', SCORE);
+                    
                 }
                 else {}
             }
@@ -155,8 +160,8 @@ var Bullet = function(x, y, mouseX, mouseY, id, playerid){
   //TODO:CHANGE BULLET UPDATE BASED ON MOUSE POINTER LOCATION  
     self.updatePosition = function(){
         var player = PLAYER_LIST[playerid];
-        var spdX = (mouseX - player.x)/5;
-        var spdY = (mouseY - player.y)/5;
+        var spdX = (mouseX - player.x)/8;
+        var spdY = (mouseY - player.y)/8;
         self.x += spdX;
         self.y += spdY;
         var angle = (Math.atan((mouseX - player.x)/(mouseY - player.y))*180)/Math.PI;
@@ -233,7 +238,7 @@ io.sockets.on('connection', function(socket){
         ENTITY_LIST[1] = Entity(1, 200, 300, 80, 80, 'wall2');
         ENTITY_LIST[2] = Entity(2, 600, 100, 80, 80, 'wall2');
         ENTITY_LIST[3] = Entity(3, 600, 300, 80, 80, 'wall2');
-        ENTITY_LIST[4] = Entity(4, 550, 300, 20, 50, 'wall1');
+        // ENTITY_LIST[4] = Entity(4, 550, 300, 20, 50, 'wall1');
         gameStart = true;
         SCORE[0] = 0;
         SCORE[1] = 0;
