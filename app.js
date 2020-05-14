@@ -23,7 +23,7 @@ var Player = function(id){
     if(id == 0){
         var self = {
             x:50,
-            y:150,
+            y:100,
             width:20,
             height:50,
             id:id,
@@ -33,7 +33,7 @@ var Player = function(id){
             pressingLeft:false,
             pressingRight:false,
             hits:0,
-            maxSpd:4,
+            maxSpd:2,
         }
         self.updatePosition = function(){
 
@@ -48,7 +48,7 @@ var Player = function(id){
             if(self.pressingRight)
                 self.x += self.maxSpd;
             
-            if(self.x >= 850){
+            if(self.x >= 180){
                     //move back by max spd
                     self.x -= self.maxSpd;
                   }
@@ -71,7 +71,7 @@ var Player = function(id){
             for(var i in BULLET_LIST){
             var bullet = BULLET_LIST[i];
                if(bullet.x > self.x && bullet.x < self.x + self.width && bullet.y > self.y && bullet.y < self.y + self.height){
-                delete BULLET_LIST[i];
+                //delete BULLET_LIST[i];
                 console.log('player 1 hit!');
                 SCORE[0]++;   
                   
@@ -85,7 +85,7 @@ var Player = function(id){
     else if (id == 1){
         var self = {
             x:750,
-            y:150,
+            y:300,
             width:20,
             height:50,
             id:id,
@@ -95,7 +95,7 @@ var Player = function(id){
             pressingLeft:false,
             pressingRight:false,
             hits:0,
-            maxSpd:4,
+            maxSpd:2,
         }
         self.updatePosition = function(){
             var collision = isTouching(self);
@@ -114,7 +114,7 @@ var Player = function(id){
                     //move back by max spd
                     self.x -= self.maxSpd;
                   }
-                  else if(self.x <= 0){
+                  else if(self.x <= 680){
                     self.x += self.maxSpd;
                   }
                   else if(self.y >= 450){
@@ -132,7 +132,7 @@ var Player = function(id){
             for(var i in BULLET_LIST){
                 var bullet = BULLET_LIST[i];
                 if(bullet.x > self.x && bullet.x < self.x + self.width && bullet.y > self.y && bullet.y < self.y + self.height){
-                    delete BULLET_LIST[i];
+                    //delete BULLET_LIST[i];
                     console.log('player 2 hit!');
                     SCORE[1]++;
                     
@@ -149,25 +149,50 @@ var Player = function(id){
 var Bullet = function(x, y, mouseX, mouseY, id, playerid){
     var self = {
         x:x,
-        y:y,
+        y:y+10,
         mouseX:mouseX,
         mouseY:mouseY,
         id:id,
         playerid:playerid
         
     }
-   
+    
+    var player = PLAYER_LIST[self.playerid];
+    
+    if (self.playerid == 0){
+        self.x += 23;
+        
+    }
+    if (player.id == 1){
+        self.x -= 23;
+    }
+    //positive situation
+    if(player.id == 0){
+    
+    var angle = Math.atan((mouseY - player.y)/(mouseX - player.x));
+    //x
+    var spdX = Math.cos(angle)*5;
+    //y
+    var spdY = Math.sin(angle)*5;
+    }
+    //negative situation
+    else {
+        
+        console.log('situation 2');
+    var angle = Math.atan((mouseY - player.y)/(mouseX - player.x));
+    //x
+    var spdX = Math.cos(angle)*-5;
+    //y
+    var spdY = Math.sin(angle)*-5;
+}
   //TODO:CHANGE BULLET UPDATE BASED ON MOUSE POINTER LOCATION  
     self.updatePosition = function(){
-        var player = PLAYER_LIST[playerid];
-        var spdX = (mouseX - player.x)/8;
-        var spdY = (mouseY - player.y)/8;
+
+        
         self.x += spdX;
         self.y += spdY;
-        var angle = (Math.atan((mouseX - player.x)/(mouseY - player.y))*180)/Math.PI;
         
-        //mousex - playerx = b
-        //mousey - playery = a
+    
         var collision = isTouching(self);
         if(collision) delete BULLET_LIST[id];
           if(self.x >= 850 || self.x <= 0){
@@ -271,9 +296,17 @@ io.sockets.on('connection', function(socket){
     socket.on('click', function(data){
         clickNum++;
         
-        var bullet = Bullet(player.x, player.y, data.x, data.y, clickNum, player.id);
+        
         console.log(data.x + ' ' + data.y);
-        bullet.updatePosition();
+        if(player.id == 0 && data.x <= player.x) delete bullet;
+        else if(player.id == 1 && data.x >= player.x) delete bullet;
+        else{
+            
+            var bullet = Bullet(player.x, player.y, data.x, data.y, clickNum, player.id);
+            bullet.updatePosition();
+        }
+        
+
     })
     
 });
