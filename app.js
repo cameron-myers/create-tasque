@@ -7,7 +7,7 @@ app.get('/',function(req,res){
 
 });
 app.use('/client', express.static(__dirname + '/client'));
-
+//listen to port 2000 for a conncetion from the client
 serv.listen(2000);
 console.log("Server Started");
 
@@ -71,13 +71,13 @@ var Player = function(id){
             for(var i in BULLET_LIST){
             var bullet = BULLET_LIST[i];
                if(bullet.x > self.x && bullet.x < self.x + self.width && bullet.y > self.y && bullet.y < self.y + self.height){
-                //delete BULLET_LIST[i];
+                delete BULLET_LIST[i];
                 console.log('player 1 hit!');
                 SCORE[0]++;   
-                  
-         }
+                
+            }
          
-                    }
+         }
         }
             
             return self;
@@ -132,12 +132,12 @@ var Player = function(id){
             for(var i in BULLET_LIST){
                 var bullet = BULLET_LIST[i];
                 if(bullet.x > self.x && bullet.x < self.x + self.width && bullet.y > self.y && bullet.y < self.y + self.height){
-                    //delete BULLET_LIST[i];
                     console.log('player 2 hit!');
+                    delete BULLET_LIST[i];
                     SCORE[1]++;
                     
                 }
-                else {}
+                
             }
     }
 
@@ -171,9 +171,9 @@ var Bullet = function(x, y, mouseX, mouseY, id, playerid){
     
     var angle = Math.atan((mouseY - player.y)/(mouseX - player.x));
     //x
-    var spdX = Math.cos(angle)*5;
+    var spdX = Math.cos(angle)*10;
     //y
-    var spdY = Math.sin(angle)*5;
+    var spdY = Math.sin(angle)*10;
     }
     //negative situation
     else {
@@ -181,9 +181,9 @@ var Bullet = function(x, y, mouseX, mouseY, id, playerid){
         console.log('situation 2');
     var angle = Math.atan((mouseY - player.y)/(mouseX - player.x));
     //x
-    var spdX = Math.cos(angle)*-5;
+    var spdX = Math.cos(angle)*-10;
     //y
-    var spdY = Math.sin(angle)*-5;
+    var spdY = Math.sin(angle)*-10;
 }
   //TODO:CHANGE BULLET UPDATE BASED ON MOUSE POINTER LOCATION  
     self.updatePosition = function(){
@@ -265,9 +265,10 @@ io.sockets.on('connection', function(socket){
         ENTITY_LIST[3] = Entity(3, 600, 300, 80, 80, 'wall2');
         // ENTITY_LIST[4] = Entity(4, 550, 300, 20, 50, 'wall1');
         gameStart = true;
-        SCORE[0] = 0;
-        SCORE[1] = 0;
-      socket.emit('gameBegin');
+            SCORE[0] = 0;
+            SCORE[1] = 0;
+            socket.emit('gameBegin');
+
     }
     else {
         socket.emit('pregame');
@@ -295,7 +296,7 @@ io.sockets.on('connection', function(socket){
     //receive shoot command and create bullet entity
     socket.on('click', function(data){
         clickNum++;
-        
+
         
         console.log(data.x + ' ' + data.y);
         if(player.id == 0 && data.x <= player.x) delete bullet;
@@ -305,7 +306,7 @@ io.sockets.on('connection', function(socket){
             var bullet = Bullet(player.x, player.y, data.x, data.y, clickNum, player.id);
             bullet.updatePosition();
         }
-        
+    
 
     })
     
@@ -319,7 +320,13 @@ setInterval (function() {
     var playerPack = [];
     var bulletPack = [];
     var mapPack = [];
+    var scorePack = [];
+    scorePack[0] = SCORE[1];
+    scorePack[1] = SCORE[0];
+    
     if(gameStart){
+        if(scorePack[0] >= 30) {scorePack[0] = 'WINNER!!!'; scorePack[1] = 'LOSER!!!';}
+        if(scorePack[1] >= 30) {scorePack[1] = 'WINNER!!!'; scorePack[0] = 'LOSER!!!';}
     for(var i in PLAYER_LIST) {
         var player = PLAYER_LIST[i];     
         player.updatePosition();
@@ -355,7 +362,7 @@ setInterval (function() {
     //sends packets using socket id
     for(var i in CONNECT_LIST) {
         var socket = CONNECT_LIST[i];
-    socket.emit('newPositions',playerPack, bulletPack, mapPack);
+    socket.emit('newPositions',playerPack, bulletPack, mapPack, scorePack);
     
     }
     }
