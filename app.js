@@ -308,13 +308,13 @@ io.sockets.on('connection', function(socket){
 //receive user input data from clients
     socket.on('keypress', function(inputData){
         if(inputData.inputId === 'up')
-            player.pressingUp = inputData.pos;
+            player.pressingUp = inputData.state;
         else if (inputData.inputId === 'down')
-            player.pressingDown = inputData.pos;
+            player.pressingDown = inputData.state;
         else if (inputData.inputId === 'left')
-            player.pressingLeft = inputData.pos;
+            player.pressingLeft = inputData.state;
         else if (inputData.inputId === 'right')
-            player.pressingRight = inputData.pos;
+            player.pressingRight = inputData.state;
             
     });
     //receive shoot command and create bullet entity
