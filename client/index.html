@@ -3,36 +3,50 @@
 
 <script src = "https://cdn.socket.io/socket.io-1.4.5.js"></script>
 <script>
+    //initialize canvas aswell as image objects and sources
         var ctx = document.getElementById("ctx").getContext("2d");
     var Img = {};
+    //player 1
     Img.player1 = new Image();
     Img.player1.src = '/client/img/Player1.png';
+    //player 2
     Img.player2 = new Image();
     Img.player2.src = '/client/img/Player2.png';
+    //bullet
     Img.bullet = new Image();
     Img.bullet.src = '/client/img/Bullet.png'
+    //wall type 1
     Img.wall1 = new Image();
     Img.wall1.src = '/client/img/wall1.png'
+    //wall type 2
     Img.wall2 = new Image();
     Img.wall2.src = '/client/img/wall2.png'
     var spectating = false;
     var pregame = false;
 
     var socket = io();
+ //function that runs whenever the client receives new position data from the server 
+ //takes player, bullet, map, and score data as parameters, each it its own array  
+ 
+ 
+
 
         socket.on('newPositions', function(playerData, bulletData, mapData, scorePack){
-            //might have to remove clear rect here once ball update works
+        //function clears the canvas to ready for new positions
             ctx.clearRect(0,0,900,500);
+
+            //draws player image for each player based on id
             for(var i in playerData){
                 if(i == 0)ctx.drawImage(Img.player1,playerData[i].x, playerData[i].y);
                 else ctx.drawImage(Img.player2,playerData[i].x, playerData[i].y);
-                //make sure ball only updates once per tick
-                
             }
+
+             //draws bullet based on position data from server
             for(var i in bulletData){
             ctx.drawImage(Img.bullet, bulletData[i].x, bulletData[i].y);
             }
 
+             //draws map each refresh although not needed it allows for future changes to be made easier ex. moving obsticles
             for(var i in mapData){
                 if(mapData[i].name == 'wall1'){
                 ctx.drawImage(Img.wall1, mapData[i].x, mapData[i].y);
@@ -42,32 +56,23 @@
                }
 
             }
-            
+            //change score based on data from the server and also check for a winning score
+            //if a player wins both players are alerted to refresh the page to play again
                 if(scorePack[0] == 'WINNER!!!' || scorePack[1] == 'WINNER!!!') alert("GG's Thanks for playing!\nPlease exit tab and reopen to play again!!");
                 ctx.font = '20px Arial';
                 ctx.fillText(scorePack[0] + ' : ' + scorePack[1], 425, 30);
             
-            // ctx.clearRect(50,0,50,500);
-            // ctx.clearRect(800,0,50,500);
         });
-
+        //while only one player is connected
         socket.on('pregame', function(){
             pregame = true;
             
         });
-        
+        //changes pregame to false on gameBegin from server
         socket.on('gameBegin', function(mapData){
             pregame = false;
 
         });
-        socket.on('scoreUpdate', function(data){
-            alert(data[0] + ':' + data[1]);
-        })
-        // socket.on('ballUpdate', function(pos){
-        //     pregame = false;
-        //     // ctx.clearRect(0,0,900,500);
-        //     ctx.drawImage(Img.ball, pos.x, pos.y);
-        // });
 
         //tells user if they are just spectating and disable input to prevent server crash
         socket.on('spectate', function(){
@@ -75,33 +80,33 @@
             alert("You are spectating");
             
         });
-        
+        //KEYSTROKE REGISTERING
         //key down listener and sender
         
             document.onkeydown = function(event){
             if(event.keyCode === 38 && spectating == false) //up arrow 
-                socket.emit('keypress', {inputId:'up', state:true});
+                socket.emit('keypress', {inputId:'up', pos:true});
             else if(event.keyCode === 40 && spectating == false) //down Arrow
-                socket.emit('keypress', {inputId:'down', state:true});
+                socket.emit('keypress', {inputId:'down', pos:true});
             else if(event.keyCode === 37 && spectating == false) //left Arrow
-                socket.emit('keypress', {inputId:'left', state:true});
+                socket.emit('keypress', {inputId:'left', pos:true});
             else if(event.keyCode === 39 && spectating == false) //right Arrow
-                socket.emit('keypress', {inputId:'right', state:true});
+                socket.emit('keypress', {inputId:'right', pos:true});
     }
         //key up listener and sender
             document.onkeyup = function(event){
             if(event.keyCode === 38 && spectating == false) //up arrow
-                socket.emit('keypress', {inputId:'up', state:false});
+                socket.emit('keypress', {inputId:'up', pos:false});
             else if(event.keyCode === 40 && spectating == false) //down Arrow
-                socket.emit('keypress', {inputId:'down', state:false});
+                socket.emit('keypress', {inputId:'down', pos:false});
                 else if(event.keyCode === 37 && spectating == false) //left Arrow
-                socket.emit('keypress', {inputId:'left', state:false});
+                socket.emit('keypress', {inputId:'left', pos:false});
             else if(event.keyCode === 39 && spectating == false) //right Arrow
-                socket.emit('keypress', {inputId:'right', state:false});
+                socket.emit('keypress', {inputId:'right', pos:false});
         }
 
-        //send click to sever 
-      
+        //send click to sever to spawn bullet
+        //send mouse x and y position
         document.onclick = function(event){
 
             var x = event.clientX;
