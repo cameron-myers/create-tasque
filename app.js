@@ -336,9 +336,6 @@ io.sockets.on('connection', function(socket){
     
 });
 
-
-
-
 //loop for positions
 //runs somewhere between 45-60 times per second
 setInterval (function() {
@@ -366,7 +363,6 @@ setInterval (function() {
             x:player.x,
             y:player.y,
             number:player.number,
-
         })
     }
 
@@ -390,8 +386,6 @@ setInterval (function() {
             y:entity.y,
             name:entity.name,
         })
-        
-        
     }
     //sends packets using socket id
     //send packets to each client
